@@ -3,7 +3,6 @@ package tn.enicarthage.enimanage.Controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -116,7 +115,7 @@ public class UserController {
         try {
             Path file = fileStorageService.load(filename);
             return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG) // ou déterminer dynamiquement
+                    .contentType(MediaType.IMAGE_JPEG)
                     .body(Files.readAllBytes(file));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image non trouvée");
