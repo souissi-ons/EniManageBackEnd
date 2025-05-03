@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Data
 @NoArgsConstructor
@@ -23,7 +22,5 @@ public class Resource {
     private String description;
 
     private Integer quantity;
-
-
 
 }

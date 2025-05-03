@@ -1,6 +1,5 @@
 package tn.enicarthage.enimanage.Model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +22,6 @@ public class ResourceSalle {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "salle_id")
     private Salle salle;
-
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "resource_id")

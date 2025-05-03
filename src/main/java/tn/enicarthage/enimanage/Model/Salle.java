@@ -42,4 +42,3 @@ public class Salle {
         ressource.setSalle(this);
     }
 }
-

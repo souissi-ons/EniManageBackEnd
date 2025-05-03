@@ -1,19 +1,30 @@
 package tn.enicarthage.enimanage.service;
 
-
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tn.enicarthage.enimanage.Model.Role;
 import tn.enicarthage.enimanage.Model.User;
 import tn.enicarthage.enimanage.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.List;
 
 @Service
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         List<User> users = userRepository.findAll();
@@ -35,16 +46,29 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
     public User createUserWithGeneratedPassword(User user) {
         String rawPassword = generateRandomPassword(10);
-        user.setPassword(rawPassword);
+        logger.info("Generated password for user {}: {}", user.getEmail(), rawPassword);
 
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        user.setPassword(encodedPassword);
+
+        logger.info("Saving user to database...");
         User savedUser = userRepository.save(user);
+        logger.info("User saved successfully with ID: {}", savedUser.getId());
+
+        try {
+            logger.info("Attempting to send email to: {}", user.getEmail());
+            emailService.sendPasswordEmail(user.getEmail(), rawPassword);
+            logger.info("Email sent successfully to: {}", user.getEmail());
+        } catch (MessagingException e) {
+            logger.error("Failed to send email to: " + user.getEmail(), e);
+            throw new RuntimeException("Erreur lors de l'envoi de l'email: " + e.getMessage(), e);
+        }
 
         return savedUser;
     }
@@ -72,5 +96,10 @@ public class UserService {
         existingUser.setLogo(updatedData.getLogo());
 
         return userRepository.save(existingUser);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
     }
 }
