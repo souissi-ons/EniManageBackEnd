@@ -29,36 +29,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    private static final String[] PUBLIC_ENDPOINTS = new String[]{
-            "/api/auth/**",
-            "/api/users/images/**",
-            "/api/users/**",
-            "/api/events/images/**",
-            "/api/events",
-            "/api/events/**",
-            "/api/salles/**",
-            "/api/resources/**",
-            "/api/uploads/**",
-            "/api/participants/**",
-            "/api/feedbacks/**",
-            "/api/participants/**",
-            "/api/participants/**",
-            "/api/participants/**",
-            "/api/participants/**",
-            "/api/participants/**",
-
-    };
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/validate-token", "/api/auth/me").authenticated()
+                        .requestMatchers("/api/events/images/**", "/api/users/images/**").permitAll()
+                        .requestMatchers("/api/events/**", "/api/users/**", "/api/salles/**", "/api/resources/**").authenticated()
                 )
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -89,7 +70,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Allow all headers
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

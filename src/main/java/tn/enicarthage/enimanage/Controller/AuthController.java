@@ -8,8 +8,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import tn.enicarthage.enimanage.DTO.AuthRequest;
 import tn.enicarthage.enimanage.DTO.AuthResponse;
+import tn.enicarthage.enimanage.DTO.ValidateTokenRequest;
+import tn.enicarthage.enimanage.DTO.ValidateTokenResponse;
 import tn.enicarthage.enimanage.Model.User;
 import tn.enicarthage.enimanage.service.AuthService;
+import tn.enicarthage.enimanage.service.JwtService;
 import tn.enicarthage.enimanage.service.UserService;
 
 @RestController
@@ -19,6 +22,8 @@ import tn.enicarthage.enimanage.service.UserService;
 public class AuthController {
     private final AuthService authService;
     private final UserService userService;
+    private final JwtService jwtService;
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest request) {
@@ -35,5 +40,11 @@ public class AuthController {
             // Ne pas retourner 401/403 ici
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<ValidateTokenResponse> validateToken(@RequestBody ValidateTokenRequest request) {
+        boolean isValid = jwtService.isTokenValid(request.getToken());
+        return ResponseEntity.ok(new ValidateTokenResponse(isValid));
     }
 }

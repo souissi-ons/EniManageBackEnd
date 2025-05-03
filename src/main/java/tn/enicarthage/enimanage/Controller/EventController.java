@@ -2,11 +2,13 @@
 package tn.enicarthage.enimanage.Controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import tn.enicarthage.enimanage.DTO.EventDTO;
 import tn.enicarthage.enimanage.DTO.FeedbackDTO;
 import tn.enicarthage.enimanage.DTO.ParticipantDTO;
@@ -15,6 +17,8 @@ import tn.enicarthage.enimanage.service.EventService;
 import tn.enicarthage.enimanage.service.FileStorageService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -120,5 +124,17 @@ public class EventController {
     @GetMapping("/{eventId}/feedbacks")
     public ResponseEntity<List<FeedbackDTO>> getEventFeedbacks(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEventFeedbacks(eventId));
+    }
+
+    @GetMapping("/images/{filename:.+}")
+    public ResponseEntity<byte[]> serveFile(@PathVariable String filename) {
+        try {
+            Path file = fileStorageService.load(filename);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(Files.readAllBytes(file));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image non trouvée");
+        }
     }
 }
