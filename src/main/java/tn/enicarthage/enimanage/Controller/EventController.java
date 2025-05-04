@@ -13,6 +13,7 @@ import tn.enicarthage.enimanage.DTO.EventDTO;
 import tn.enicarthage.enimanage.DTO.FeedbackDTO;
 import tn.enicarthage.enimanage.DTO.ParticipantDTO;
 import tn.enicarthage.enimanage.Model.Event;
+import tn.enicarthage.enimanage.Model.EventStatus;
 import tn.enicarthage.enimanage.service.EventService;
 import tn.enicarthage.enimanage.service.FileStorageService;
 
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -110,10 +112,41 @@ public class EventController {
             @PathVariable Long userId) {
         return ResponseEntity.ok(eventService.attendEvent(eventId, userId));
     }
+    @GetMapping("/pending")
+    public ResponseEntity<List<EventDTO>> getPendingEvents() {
+        List<Event> events = eventService.getEventsByStatus(EventStatus.PENDING);
+        List<EventDTO> eventDTOs = events.stream()
+                .map(this::convertToDTO)  // Using the method reference now
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(eventDTOs);
+    }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Event> updateEventStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        EventStatus status = EventStatus.valueOf(request.get("status").toUpperCase());
+        return ResponseEntity.ok(eventService.updateEventStatus(id, status));
+    }
     @PostMapping("/feedback")
     public ResponseEntity<FeedbackDTO> addFeedback(@RequestBody FeedbackDTO feedbackDTO) {
         return ResponseEntity.ok(eventService.addFeedback(feedbackDTO));
+    }
+    // EventController.java
+    private EventDTO convertToDTO(Event event) {
+        return EventDTO.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .description(event.getDescription())
+                .dateStart(event.getDateStart())
+                .dateEnd(event.getDateEnd())
+                .isPrivate(event.isPrivate())
+                .capacity(event.getCapacity())
+                .status(event.getStatus())
+                .creatorId(event.getCreator().getId())
+                .salleId(event.getSalle().getId())
+                .imageUrl(event.getImageUrl())
+                .build();
     }
 
     @GetMapping("/{eventId}/participants")
