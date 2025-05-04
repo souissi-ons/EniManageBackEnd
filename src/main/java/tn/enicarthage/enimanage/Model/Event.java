@@ -66,4 +66,7 @@ public class Event {
     @JsonProperty("imageUrl")
     @JsonInclude(JsonInclude.Include.ALWAYS)
     private String imageUrl;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventResource> resources;
 }

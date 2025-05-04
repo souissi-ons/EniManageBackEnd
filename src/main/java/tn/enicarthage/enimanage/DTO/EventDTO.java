@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import tn.enicarthage.enimanage.Model.EventStatus;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -25,4 +26,5 @@ public class EventDTO {
     private Long creatorId;
     private Long salleId;
     private String imageUrl;
+    private List<EventResourceDTO> resources;
 }
