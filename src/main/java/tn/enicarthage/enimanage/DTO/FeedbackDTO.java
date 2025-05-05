@@ -16,6 +16,10 @@ public class FeedbackDTO {
     private Long id;
     private Long eventId;
     private Long userId;
-    private String comment;
+    private Integer noteGlobale;
+    private Integer pertinenceEtudes;
+    private Integer qualiteOrganisation;
+    private Integer noteAmbiance;
+    private Boolean recommandation;
     private Date creationDate;
 }

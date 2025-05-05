@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +16,7 @@ import tn.enicarthage.enimanage.DTO.FeedbackDTO;
 import tn.enicarthage.enimanage.DTO.ParticipantDTO;
 import tn.enicarthage.enimanage.Model.Event;
 import tn.enicarthage.enimanage.Model.EventStatus;
+import tn.enicarthage.enimanage.Model.User;
 import tn.enicarthage.enimanage.service.EventService;
 import tn.enicarthage.enimanage.service.FileStorageService;
 
@@ -129,10 +132,7 @@ public class EventController {
         EventStatus status = EventStatus.valueOf(request.get("status").toUpperCase());
         return ResponseEntity.ok(eventService.updateEventStatus(id, status));
     }
-    @PostMapping("/feedback")
-    public ResponseEntity<FeedbackDTO> addFeedback(@RequestBody FeedbackDTO feedbackDTO) {
-        return ResponseEntity.ok(eventService.addFeedback(feedbackDTO));
-    }
+
     // EventController.java
     private EventDTO convertToDTO(Event event) {
         return EventDTO.builder()
@@ -150,14 +150,14 @@ public class EventController {
                 .build();
     }
 
-    @GetMapping("/{eventId}/participants")
-    public ResponseEntity<List<ParticipantDTO>> getEventParticipants(@PathVariable Long eventId) {
-        return ResponseEntity.ok(eventService.getEventParticipants(eventId));
+    @PostMapping("/feedback")
+    public ResponseEntity<FeedbackDTO> addFeedback(@RequestBody FeedbackDTO feedbackDTO) {
+        return ResponseEntity.ok(eventService.addFeedback(feedbackDTO));
     }
 
-    @GetMapping("/{eventId}/feedbacks")
-    public ResponseEntity<List<FeedbackDTO>> getEventFeedbacks(@PathVariable Long eventId) {
-        return ResponseEntity.ok(eventService.getEventFeedbacks(eventId));
+    @GetMapping("/{eventId}/stats")
+    public ResponseEntity<Map<String, Object>> getEventStats(@PathVariable Long eventId) {
+        return ResponseEntity.ok(eventService.getEventStats(eventId));
     }
 
     @GetMapping("/images/{filename:.+}")

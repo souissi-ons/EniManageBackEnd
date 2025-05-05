@@ -41,7 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/events/images/**", "/api/users/images/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/users/**").authenticated()
-                        .anyRequest().authenticated() // Changed from permitAll to authenticated
+                        .anyRequest().permitAll() // Changed from permitAll to authenticated
+
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

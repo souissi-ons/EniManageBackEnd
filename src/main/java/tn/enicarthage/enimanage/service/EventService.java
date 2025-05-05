@@ -250,51 +250,61 @@ public class EventService {
 
         public FeedbackDTO addFeedback(FeedbackDTO feedbackDTO) {
                 Event event = eventRepository.findById(feedbackDTO.getEventId())
-                                .orElseThrow(() -> new RuntimeException("Event not found"));
+                        .orElseThrow(() -> new RuntimeException("Event not found"));
                 User user = userRepository.findById(feedbackDTO.getUserId())
-                                .orElseThrow(() -> new RuntimeException("User not found"));
+                        .orElseThrow(() -> new RuntimeException("User not found"));
 
                 if (new Date().before(event.getDateEnd())) {
                         throw new RuntimeException("Event is not finished yet");
                 }
 
+                // Validation des notes
+                validateRating(feedbackDTO.getNoteGlobale());
+                validateRating(feedbackDTO.getPertinenceEtudes());
+                validateRating(feedbackDTO.getQualiteOrganisation());
+                validateRating(feedbackDTO.getNoteAmbiance());
+
                 Feedback feedback = Feedback.builder()
-                                .event(event)
-                                .user(user)
-                                .comment(feedbackDTO.getComment())
-                                .creationDate(new Date())
-                                .build();
+                        .event(event)
+                        .user(user)
+                        .noteGlobale(feedbackDTO.getNoteGlobale())
+                        .pertinenceEtudes(feedbackDTO.getPertinenceEtudes())
+                        .qualiteOrganisation(feedbackDTO.getQualiteOrganisation())
+                        .noteAmbiance(feedbackDTO.getNoteAmbiance())
+                        .recommandation(feedbackDTO.getRecommandation())
+                        .creationDate(new Date())
+                        .build();
 
                 feedbackRepository.save(feedback);
 
                 return FeedbackDTO.builder()
-                                .eventId(feedbackDTO.getEventId())
-                                .userId(feedbackDTO.getUserId())
-                                .comment(feedbackDTO.getComment())
-                                .creationDate(new Date())
-                                .build();
+                        .id(feedback.getId())
+                        .eventId(feedback.getEvent().getId())
+                        .userId(feedback.getUser().getId())
+                        .noteGlobale(feedback.getNoteGlobale())
+                        .pertinenceEtudes(feedback.getPertinenceEtudes())
+                        .qualiteOrganisation(feedback.getQualiteOrganisation())
+                        .noteAmbiance(feedback.getNoteAmbiance())
+                        .recommandation(feedback.getRecommandation())
+                        .creationDate(feedback.getCreationDate())
+                        .build();
         }
 
-        public List<ParticipantDTO> getEventParticipants(Long eventId) {
-                return participantEventRepository.findByEventId(eventId).stream()
-                                .map(p -> ParticipantDTO.builder()
-                                                .id(p.getId())
-                                                .eventId(p.getEvent().getId())
-                                                .userId(p.getUser().getId())
-                                                .inscriptionDate(p.getInscriptionDate())
-                                                .build())
-                                .collect(Collectors.toList());
+        private void validateRating(Integer rating) {
+                if (rating == null || rating < 1 || rating > 5) {
+                        throw new IllegalArgumentException("La note doit être entre 1 et 5");
+                }
         }
 
-        public List<FeedbackDTO> getEventFeedbacks(Long eventId) {
-                return feedbackRepository.findByEventId(eventId).stream()
-                                .map(f -> FeedbackDTO.builder()
-                                                .id(f.getId())
-                                                .eventId(f.getEvent().getId())
-                                                .userId(f.getUser().getId())
-                                                .comment(f.getComment())
-                                                .creationDate(f.getCreationDate())
-                                                .build())
-                                .collect(Collectors.toList());
+        // Ajouter une méthode pour les statistiques
+        public Map<String, Object> getEventStats(Long eventId) {
+                return Map.of(
+                        "moyenneGlobale", feedbackRepository.findAverageNoteGlobaleByEventId(eventId),
+                        "moyennePertinence", feedbackRepository.findAveragePertinenceEtudesByEventId(eventId),
+                        "moyenneOrganisation", feedbackRepository.findAverageQualiteOrganisationByEventId(eventId),
+                        "moyenneAmbiance", feedbackRepository.findAverageNoteAmbianceByEventId(eventId),
+                        "tauxRecommandation", feedbackRepository.countByEventIdAndRecommandation(eventId, true),
+                        "totalFeedbacks", feedbackRepository.countByEventId(eventId)
+                );
         }
 }
