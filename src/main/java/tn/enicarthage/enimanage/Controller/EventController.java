@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/events")
 @RequiredArgsConstructor
+
 public class EventController {
     private final EventService eventService;
     private final FileStorageService fileStorageService;
