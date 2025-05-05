@@ -297,15 +297,4 @@ public class EventService {
                                                 .build())
                                 .collect(Collectors.toList());
         }
-
-        public List<Event> getEventsByStatus(EventStatus status) {
-                return eventRepository.findByStatus(status);
-        }
-
-        public Event updateEventStatus(Long id, EventStatus status) {
-                Event event = eventRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Event not found"));
-                event.setStatus(status);
-                return eventRepository.save(event);
-        }
 }
