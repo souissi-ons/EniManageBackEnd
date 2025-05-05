@@ -7,6 +7,14 @@ import tn.enicarthage.enimanage.Model.Feedback;
 import java.util.List;
 
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
-    List<Feedback> findByEventId(Long eventId);  // Méthode de recherche par ID d'événement
+    List<Feedback> findByEventId(Long eventId);
+
+    // Ajouter pour les statistiques
+    Double findAverageNoteGlobaleByEventId(Long eventId);
+    Double findAveragePertinenceEtudesByEventId(Long eventId);
+    Double findAverageQualiteOrganisationByEventId(Long eventId);
+    Double findAverageNoteAmbianceByEventId(Long eventId);
+    Long countByEventIdAndRecommandation(Long eventId, Boolean recommandation);
+    Long countByEventId(Long eventId);
 
 }

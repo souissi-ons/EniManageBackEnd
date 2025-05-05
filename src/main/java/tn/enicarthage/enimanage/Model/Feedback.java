@@ -29,8 +29,21 @@ public class Feedback {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String comment;
+    // Nouveaux champs quantitatifs
+    @Column(nullable = false)
+    private Integer noteGlobale;         // 1-5
+
+    @Column(nullable = false)
+    private Integer pertinenceEtudes;    // 1-5
+
+    @Column(nullable = false)
+    private Integer qualiteOrganisation; // 1-5
+
+    @Column(nullable = false)
+    private Integer noteAmbiance;       // 1-5
+
+    @Column(nullable = false)
+    private Boolean recommandation;     // true = oui, false = non
 
     @Column(nullable = false)
     private Date creationDate;
