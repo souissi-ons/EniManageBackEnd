@@ -9,9 +9,7 @@ import tn.enicarthage.enimanage.DTO.ParticipantDTO;
 import tn.enicarthage.enimanage.Model.*;
 import tn.enicarthage.enimanage.repository.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +20,8 @@ public class EventService {
         private final ParticipantEventRepository participantEventRepository;
         private final FeedbackRepository feedbackRepository;
         private final SalleRepository salleRepository;
+        private final EventResourceRepository eventResourceRepository;
+        private final ResourceRepository resourceRepository;
 
         public List<Event> getAllEvents() {
                 return eventRepository.findAll();
@@ -30,7 +30,100 @@ public class EventService {
         public Optional<Event> getEventById(Long id) {
                 return eventRepository.findById(id);
         }
+        public Event checkAvailability(Event event) {
+                List<Event> events = getAllEvents();
+                List<Salle> allSalles = salleRepository.findAll(); // Assume this gives all salles
+                Salle chosenSalle = event.getSalle();
+                boolean isOccupied = false;
 
+                for (Event e : events) {
+                        if (e.getSalle().getId().equals(chosenSalle.getId())) {
+                                boolean overlaps = event.getDateStart().before(e.getDateEnd()) &&
+                                        event.getDateEnd().after(e.getDateStart());
+                                if (overlaps) {
+                                        isOccupied = true;
+                                        break;
+                                }
+                        }
+                }
+
+                if (isOccupied) {
+                        List<Salle> available = new ArrayList<>();
+                        for (Salle salle : allSalles) {
+                                boolean availableSalle = true;
+                                for (Event e : events) {
+                                        if (e.getSalle().getId().equals(salle.getId())) {
+                                                boolean overlaps = event.getDateStart().before(e.getDateEnd()) &&
+                                                        event.getDateEnd().after(e.getDateStart());
+                                                if (overlaps) {
+                                                        availableSalle = false;
+                                                        break;
+                                                }
+                                        }
+                                }
+                                if (availableSalle) {
+                                        available.add(salle);
+                                }
+                        }
+
+                        // Try to find salle with enough capacity
+                        for (Salle s : available) {
+                                if (s.getCapacity() >= event.getCapacity()) {
+                                        event.setSalle(s);
+                                        return event;
+                                }
+                        }
+
+                        // If none found, choose salle with max capacity
+                        Salle maxSalle = available.stream()
+                                .max(Comparator.comparing(Salle::getCapacity))
+                                .orElse(null);
+
+                        if (maxSalle != null) {
+                                event.setSalle(maxSalle);
+                        } else {
+                                throw new IllegalStateException("No available salle for the given event timing");
+                        }
+                }
+
+                return event;
+        }
+        public List<EventResource> ValidResources(Event event, List<EventResource> requestedResources) {
+                List<EventResource> validResources = new ArrayList<>();
+                List<EventResource> allTakenResources = eventResourceRepository.findAll();
+
+                Date eventStart = event.getDateStart();
+                Date eventEnd = event.getDateEnd();
+
+                for (EventResource requested : requestedResources) {
+                        Long resourceId = requested.getResource().getId();
+                        int requestedQty = requested.getQuantity();
+
+                        int totalQty = resourceRepository.findById(resourceId)
+                                .orElseThrow().getQuantity();
+
+                        int takenQty = allTakenResources.stream()
+                                .filter(er -> er.getResource().getId().equals(resourceId))
+                                .filter(er -> {
+                                        Event e = er.getEvent();
+                                        return eventStart.before(e.getDateEnd()) && eventEnd.after(e.getDateStart());
+                                })
+                                .mapToInt(EventResource::getQuantity)
+                                .sum();
+
+                        int availableQty = totalQty - takenQty;
+
+                        if (availableQty >= requestedQty) {
+                                validResources.add(requested); // full quantity available
+                        } else if (availableQty > 0) {
+                                requested.setQuantity(availableQty); // set to max available
+                                validResources.add(requested);
+                        }
+                        // else skip adding this resource
+                }
+
+                return validResources;
+        }
         public Event createEvent(EventDTO eventDTO) {
                 User creator = userRepository.findById(eventDTO.getCreatorId())
                                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -48,9 +141,29 @@ public class EventService {
                                 .creator(creator)
                                 .salle(salle)
                                 .imageUrl(eventDTO.getImageUrl())
+                                .resources(new ArrayList<>())
                                 .build();
+                event=checkAvailability(event);
+                Event savedEvent = eventRepository.save(event);
 
-                return eventRepository.save(event);
+                // Handle resources
+                if (eventDTO.getResources() != null) {
+                        List<EventResource> eventResources = new ArrayList<>();
+                        for (var resourceDTO : eventDTO.getResources()) {
+                                Resource resource = resourceRepository.findById(resourceDTO.getResourceId())
+                                                .orElseThrow(() -> new RuntimeException("Resource not found: " + resourceDTO.getResourceId()));
+                                EventResource eventResource = EventResource.builder()
+                                                .event(savedEvent)
+                                                .resource(resource)
+                                                .quantity(resourceDTO.getQuantity())
+                                                .build();
+                                eventResources.add(eventResource);
+                        }
+                        eventResources=ValidResources(event,eventResources);
+                        eventResourceRepository.saveAll(eventResources);
+                        savedEvent.setResources(eventResources);
+                }
+                return savedEvent;
         }
 
         public Event updateEvent(Long id, EventDTO eventDTO) {
@@ -72,6 +185,25 @@ public class EventService {
                 existingEvent.setSalle(salle);
                 if (eventDTO.getImageUrl() != null) {
                         existingEvent.setImageUrl(eventDTO.getImageUrl());
+                }
+
+                // Update resources
+                if (eventDTO.getResources() != null) {
+                        // Remove old resources
+                        eventResourceRepository.deleteByEventId(existingEvent.getId());
+                        List<EventResource> eventResources = new ArrayList<>();
+                        for (var resourceDTO : eventDTO.getResources()) {
+                                Resource resource = resourceRepository.findById(resourceDTO.getResourceId())
+                                                .orElseThrow(() -> new RuntimeException("Resource not found: " + resourceDTO.getResourceId()));
+                                EventResource eventResource = EventResource.builder()
+                                                .event(existingEvent)
+                                                .resource(resource)
+                                                .quantity(resourceDTO.getQuantity())
+                                                .build();
+                                eventResources.add(eventResource);
+                        }
+                        eventResourceRepository.saveAll(eventResources);
+                        existingEvent.setResources(eventResources);
                 }
 
                 return eventRepository.save(existingEvent);
