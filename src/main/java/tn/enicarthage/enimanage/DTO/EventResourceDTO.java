@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
     @AllArgsConstructor
     public class EventResourceDTO {
         private Long resourceId;
+        private String resourceName;
         private Integer quantity;
     }
 

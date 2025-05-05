@@ -9,9 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import tn.enicarthage.enimanage.DTO.EventDTO;
-import tn.enicarthage.enimanage.DTO.FeedbackDTO;
-import tn.enicarthage.enimanage.DTO.ParticipantDTO;
+import tn.enicarthage.enimanage.DTO.*;
 import tn.enicarthage.enimanage.Model.Event;
 import tn.enicarthage.enimanage.Model.EventStatus;
 import tn.enicarthage.enimanage.service.EventService;
@@ -170,5 +168,15 @@ public class EventController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image non trouvée");
         }
+    }
+    @GetMapping("/all-details")
+    public ResponseEntity<List<AddEventDTO>> getAllEventsWithDetails() {
+        return ResponseEntity.ok(eventService.getAllEventsWithDetails());
+    }
+
+    @GetMapping("/{eventId}/resources")
+    public ResponseEntity<List<EventResourceDTO>> getEventResources(@PathVariable Long eventId) {
+        List<EventResourceDTO> resources = eventService.getEventResources(eventId);
+        return ResponseEntity.ok(resources);
     }
 }
