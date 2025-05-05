@@ -237,6 +237,16 @@ public class EventService {
                                 .inscriptionDate(new Date())
                                 .build();
         }
+        public List<Event> getEventsByStatus(EventStatus status) {
+                return eventRepository.findByStatus(status);
+        }
+
+        public Event updateEventStatus(Long id, EventStatus status) {
+                Event event = eventRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Event not found"));
+                event.setStatus(status);
+                return eventRepository.save(event);
+        }
 
         public FeedbackDTO addFeedback(FeedbackDTO feedbackDTO) {
                 Event event = eventRepository.findById(feedbackDTO.getEventId())
