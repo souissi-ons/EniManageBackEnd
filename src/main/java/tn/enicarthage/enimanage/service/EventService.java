@@ -326,15 +326,15 @@ public class EventService {
                 }
         }
 
-        // Ajouter une méthode pour les statistiques
         public Map<String, Object> getEventStats(Long eventId) {
+                EventStatsDTO stats = feedbackRepository.getEventStats(eventId);
                 return Map.of(
-                        "moyenneGlobale", feedbackRepository.findAverageNoteGlobaleByEventId(eventId),
-                        "moyennePertinence", feedbackRepository.findAveragePertinenceEtudesByEventId(eventId),
-                        "moyenneOrganisation", feedbackRepository.findAverageQualiteOrganisationByEventId(eventId),
-                        "moyenneAmbiance", feedbackRepository.findAverageNoteAmbianceByEventId(eventId),
-                        "tauxRecommandation", feedbackRepository.countByEventIdAndRecommandation(eventId, true),
-                        "totalFeedbacks", feedbackRepository.countByEventId(eventId)
+                        "moyenneGlobale", stats.getAverageGlobalRating(),
+                        "moyennePertinence", stats.getAverageRelevanceRating(),
+                        "moyenneOrganisation", stats.getAverageOrganizationRating(),
+                        "moyenneAmbiance", stats.getAverageAtmosphereRating(),
+                        "tauxRecommandation", stats.getRecommendationCount(),
+                        "totalFeedbacks", stats.getTotalFeedbacks()
                 );
         }
 
