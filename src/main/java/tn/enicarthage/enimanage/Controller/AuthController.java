@@ -44,7 +44,11 @@ public class AuthController {
 
     @PostMapping("/validate-token")
     public ResponseEntity<ValidateTokenResponse> validateToken(@RequestBody ValidateTokenRequest request) {
-        boolean isValid = jwtService.isTokenValid(request.getToken());
-        return ResponseEntity.ok(new ValidateTokenResponse(isValid));
+        try {
+            boolean isValid = jwtService.isTokenValid(request.getToken());
+            return ResponseEntity.ok(new ValidateTokenResponse(isValid));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ValidateTokenResponse(false));
+        }
     }
 }

@@ -17,9 +17,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:" + uploadDir + "/");
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/images/**")
-                .allowedMethods("GET");
-    }
 }
