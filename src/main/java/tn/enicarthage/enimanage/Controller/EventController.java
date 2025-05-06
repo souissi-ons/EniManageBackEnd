@@ -131,7 +131,6 @@ public class EventController {
         return ResponseEntity.ok(eventService.updateEventStatus(id, status));
     }
 
-    // EventController.java
     private EventDTO convertToDTO(Event event) {
         return EventDTO.builder()
                 .id(event.getId())
@@ -148,8 +147,9 @@ public class EventController {
                 .build();
     }
 
-    @PostMapping("/feedback")
-    public ResponseEntity<FeedbackDTO> addFeedback(@RequestBody FeedbackDTO feedbackDTO) {
+    @PostMapping("/{id}/feedback")
+    public ResponseEntity<FeedbackDTO> addFeedback(@PathVariable Long id, @RequestBody FeedbackDTO feedbackDTO) {
+        feedbackDTO.setEventId(id); // Override any wrong eventId in body
         return ResponseEntity.ok(eventService.addFeedback(feedbackDTO));
     }
 
