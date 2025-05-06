@@ -37,11 +37,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Add this line
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/events/images/**", "/api/users/images/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/events/images/**", "/api/users/images/**", "/api/auth/validate-token").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/users/**").authenticated()
-                        .anyRequest().permitAll() // Changed from permitAll to authenticated
+                        .anyRequest().permitAll()
 
                 )
                 .sessionManagement(session -> session
