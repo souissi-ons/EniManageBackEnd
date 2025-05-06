@@ -1,11 +1,8 @@
-// EventService.java
 package tn.enicarthage.enimanage.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import tn.enicarthage.enimanage.DTO.EventDTO;
-import tn.enicarthage.enimanage.DTO.FeedbackDTO;
-import tn.enicarthage.enimanage.DTO.ParticipantDTO;
+import tn.enicarthage.enimanage.DTO.*;
 import tn.enicarthage.enimanage.Model.*;
 import tn.enicarthage.enimanage.repository.*;
 
@@ -247,7 +244,40 @@ public class EventService {
                 event.setStatus(status);
                 return eventRepository.save(event);
         }
+        public List<AddEventDTO> getAllEventsWithDetails() {
+                List<Event> events = eventRepository.findAll();
+                return events.stream().map(event -> {
+                        // Map all necessary fields including creator, salle, and resources
+                        List<EventResourceDetailsDTO> resources = eventResourceRepository.findByEventId(event.getId()).stream()
+                                .map(resource -> {
+                                        Resource res = resource.getResource();
+                                        return EventResourceDetailsDTO.builder()
+                                                .id(resource.getId())
+                                                .name(res.getName())
+                                                .quantity(resource.getQuantity())
+                                                .build();
+                                })
+                                .collect(Collectors.toList());
 
+                        return AddEventDTO.builder()
+                                .id(event.getId())
+                                .title(event.getTitle())
+                                .description(event.getDescription())
+                                .dateStart(event.getDateStart())
+                                .dateEnd(event.getDateEnd())
+                                .isPrivate(event.isPrivate())
+                                .capacity(event.getCapacity())
+                                .status(event.getStatus())
+                                .creatorName(event.getCreator().getName())
+                                .phone(event.getCreator().getPhoneNumber())
+                                .email(event.getCreator().getEmail())
+                                .salleId(event.getSalle().getId())
+                                .imageUrl(event.getImageUrl())
+                                .logoUrl(event.getImageUrl())
+                                .resources(resources)
+                                .build();
+                }).collect(Collectors.toList());
+        }
         public FeedbackDTO addFeedback(FeedbackDTO feedbackDTO) {
                 Event event = eventRepository.findById(feedbackDTO.getEventId())
                         .orElseThrow(() -> new RuntimeException("Event not found"));
@@ -306,5 +336,18 @@ public class EventService {
                         "tauxRecommandation", feedbackRepository.countByEventIdAndRecommandation(eventId, true),
                         "totalFeedbacks", feedbackRepository.countByEventId(eventId)
                 );
+        }
+
+        public List<EventResourceDTO> getEventResources(Long eventId) {
+                // Implémentez la logique pour récupérer les ressources de l'événement
+                // Par exemple :
+                return eventResourceRepository.findByEventId(eventId)
+                        .stream()
+                        .map(resource -> EventResourceDTO.builder()
+                                .resourceId(resource.getId())
+                                .resourceName(resource.getResource().getName())
+                                .quantity(resource.getQuantity())
+                                .build())
+                        .collect(Collectors.toList());
         }
 }
