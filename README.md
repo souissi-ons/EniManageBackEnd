@@ -5,6 +5,15 @@ EniManageBackEnd est la partie backend du projet EniManage développé en **Spri
 
 ---
 
+### Objectif principal
+Centraliser et digitaliser la gestion des événements au sein de l'établissement Enicarthage en offrant une solution complète, sécurisée et temps réel pour :
+- Planifier et organiser des événements
+- Gérer les ressources et salles
+- Faciliter la communication entre participants
+- Assurer un suivi en temps réel des activités
+  
+---
+
 ## Fonctionnalités principales
 
 ### Sécurité & Authentification
@@ -34,12 +43,11 @@ EniManageBackEnd est la partie backend du projet EniManage développé en **Spri
 
 ---
 
-## Prérequis
+### Caractéristiques clés
+- **API RESTful** complète pour les applications frontend et mobiles
+- **Authentification JWT** sécurisée avec gestion des rôles
+- **Communication temps réel** via WebSocket
+- **Architecture modulaire** et extensible
+- **Tests automatisés** pour garantir la fiabilité
 
-Avant de commencer, assurez-vous d'avoir installé :
-
-- **Java** : JDK 11 ou version supérieure
-- **Maven** : Version 3.6 ou supérieure
-- **Base de données** : Configuration selon votre environnement
-
----
+---  
